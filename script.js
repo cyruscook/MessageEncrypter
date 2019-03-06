@@ -1,41 +1,43 @@
 var ETypeOfRequest = 
 {
-	decryption = 1,
-	encryption = 2
+	decryption: 1,
+	encryption: 2
 }
 
-class Message()
+class Message
 {
 	constructor(typeOfRequest, messageID)
 	{
 		this.typeOfRequest = typeOfRequest;
 		this.messageID = messageID;
+	
+		// The message in it's encrypted format
+		this.encryptedMessage = "";
+		// The message in it's decrypted format
+		this.decryptedMessage = "";
+		
+		// The hashed format of the message
+		this.messageHash = "";
+		
+		// A reference to the place where we will store the message
+		this.messageDiv = document.getElementById("messageContent");
+		
+		// An array of all of the passwords the user has already tried that have failed
+		this.knownBadPasswords = [];
 	}
-	
-	// The message in it's encrypted format
-	this.encryptedMessage = "";
-	// The message in it's decrypted format
-	this.decryptedMessage = "";
-	
-	// The hashed format of the message
-	this.messageHash = "";
-	
-	// A reference to the place where we will store the message
-	this.messageDiv = document.getElementById("messageContent");
-	
-	// An array of all of the passwords the user has already tried that have failed
-	this.knownBadPasswords = [];
 }
 
 thisMessage = new Message(
 	// The type of request
-	ETypeOfRequest.<?php echo(addslashes($_GET['decryption'])); ?>,
+	//ETypeOfRequest.<?php echo(addslashes($_GET['decryption'])); ?>,
+	ETypeOfRequest.encryption,
 	// The id of the message
-	<?php echo(addslashes($_GET['id'])); ?>
+	//<?php echo(addslashes($_GET['id'])); ?>
+	50
 );
 
 // When the page loads we check the type of request
-if(typeOfRequest === ETypeOfRequest.DECRYPTION)
+if(thisMessage.typeOfRequest === ETypeOfRequest.decryption)
 {
 	// If it's a decryption then we fetch the encrypted message and the password hash
 	var request = new XMLHttpRequest();
