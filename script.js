@@ -17,11 +17,14 @@ class Message()
 	// The message in it's decrypted format
 	this.decryptedMessage = "";
 	
-	// The hashed format of the password
-	this.passwordHash = "";
+	// The hashed format of the message
+	this.messageHash = "";
 	
 	// A reference to the place where we will store the message
 	this.messageDiv = document.getElementById("messageContent");
+	
+	// An array of all of the passwords the user has already tried that have failed
+	this.knownBadPasswords = [];
 }
 
 thisMessage = new Message(
@@ -48,6 +51,7 @@ if(typeOfRequest === ETypeOfRequest.DECRYPTION)
 			// Collect the data that was sent back and retrieve the encrypted message. Pass this to the message class.
 			var data = JSON.parse(request.responseText);
 			thisMessage.encryptedMessage = data.encryptedMessage;
+			thisMessage.messageHash = data.messageHash;
 			
 			// Now that we have the encrypted text we can continue
 			startDecryption(thisMessage);
@@ -58,6 +62,57 @@ if(typeOfRequest === ETypeOfRequest.DECRYPTION)
 	request.send();
 }
 
-function startDecryption(theMessage){
+function startDecryption(theMessage)
+{
+	// Set the message box to contain the encrypted message (looks cool)
 	theMessage.messageDiv.innerHTML = theMessage.encryptedMessage;
+	
+	// The callback when the user gives us the password
+	function tryPassword(password)
+	{
+		// If we know the user hasn't already tried it before
+		if(!thisMessage.knownBadPasswords.includes(password))
+		{
+			// Attempt to decrypt the message
+			maybeDecrypted = CryptoJS.AES.decrypt(theMessage.encryptedMessage, password);
+			
+			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
+			if(maybeDecrypted.subString(0,21) == "--- BEGIN MESSAGE --- ")
+			{
+				// If it was retrieve the message
+				theMessage.decryptedMessage = maybeDecrypted.subString(22);
+				onDecryption(theMessage);
+				return;
+			}
+		}
+		// Ask the user for the password again
+		askForPassword(
+			// The callback when the user gives us the password
+			tryPassword,
+			// This is not the user's first guess
+			true
+		);
+	}
+	
+	// Ask the user for the password
+	askForPassword(
+		// The callback when the user gives us the password
+		tryPassword,
+		// This is the user's first guess
+		false
+	);
+}
+
+function onDecryption(theMessage)
+{
+	// When the user successfully decrypts a message
+	// Set the message box to contain the decrypted message
+	theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
+	
+}
+
+function askForPassword(callback, repeated)
+{
+	// Popup box stuff
+	callback(password);
 }

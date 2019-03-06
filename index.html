@@ -19,5 +19,8 @@ $messageID = addslashes($_GET['id']);
 	<script>
 	</script>
 	<script src="script.js?type=<?php echo($typeOfRequest); ?>&id=<?php echo($messageID); ?>"></script>
+	
+	// CryptoJS (https://code.google.com/archive/p/crypto-js/). This is the library with which encryptions will be made
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 </body>
 </html>
