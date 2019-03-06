@@ -16,9 +16,6 @@ class Message
 		// The message in it's decrypted format
 		this.decryptedMessage = "";
 		
-		// The hashed format of the message
-		this.messageHash = "";
-		
 		// A reference to the place where we will store the message
 		this.messageDiv = document.getElementById("messageContent");
 		
@@ -76,15 +73,25 @@ function startDecryption(theMessage)
 		if(!thisMessage.knownBadPasswords.includes(password))
 		{
 			// Attempt to decrypt the message
-			maybeDecrypted = CryptoJS.AES.decrypt(theMessage.encryptedMessage, password);
+			var bytes = CryptoJS.AES.decrypt(theMessage.encryptedMessage, password);
+			var maybeDecrypted = bytes.toString(CryptoJS.enc.Utf8);
 			
 			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
-			if(maybeDecrypted.subString(0,21) == "--- BEGIN MESSAGE --- ")
+			if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
 			{
 				// If it was retrieve the message
-				theMessage.decryptedMessage = maybeDecrypted.subString(22);
+				theMessage.decryptedMessage = maybeDecrypted.substring(22);
 				onDecryption(theMessage);
 				return;
+			}
+			else
+			{
+				// If they got the password wrong, then we won't bother trying it again
+				// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
+				if(!~thisMessage.knownBadPasswords.indexOf(password))
+				{
+					thisMessage.knownBadPasswords.push(password);
+				}
 			}
 		}
 		// Ask the user for the password again
@@ -110,11 +117,23 @@ function onDecryption(theMessage)
 	// When the user successfully decrypts a message
 	// Set the message box to contain the decrypted message
 	theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
-	
 }
 
 function askForPassword(callback, repeated)
 {
 	// Popup box stuff
 	callback(password);
+}
+
+function startEncryption(theMessage, password)
+{
+	// Encrypt the given text with the given password
+	theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
+}
+
+function onEncryption(theMessage)
+{
+	// When the user successfully encrypts a message
+	// Set the message box to contain the encrypted message
+	theMessage.messageDiv.innerHTML = thisMessage.encryptedMessage;
 }
