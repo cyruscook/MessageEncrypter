@@ -1,0 +1,23 @@
+<?php
+$typeOfRequest = "encryption";
+if(isset($_GET['decryption']))
+{
+	$typeOfRequest = "decryption";
+}
+
+$messageID = addslashes($_GET['id']);
+?>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Encryted Message</title>
+</head>
+<body>
+	<div id="messageContent"></div>
+	
+	
+	<script>
+	</script>
+	<script src="script.js?type=<?php echo($typeOfRequest); ?>&id=<?php echo($messageID); ?>"></script>
+</body>
+</html>
