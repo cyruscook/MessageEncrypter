@@ -11,13 +11,57 @@ $messageID = addslashes($_GET['id']);
 <html>
 <head>
 	<title>Encryted Message</title>
+	
+	<!-- Bootstrap -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	
+	
+	<style>	
+		html{
+			height: 100vh;
+		}
+		
+		body{
+			height: 100%;
+		}
+		
+		#containerBody
+		{
+			height: 100%;
+		}
+		
+		
+		#encryptForm
+		{
+			height: 100%;
+		}
+		
+		.form-group
+		{
+			//height: 100%;
+		}
+		
+		#messageContent
+		{
+			//height: 100%;
+		}
+		
+		#actionButton
+		{
+			width: 100%;
+		}
+	</style>
 </head>
 <body>
-	<div id="messageContent"></div>
+	<div class="container" id="containerBody">
+		<form id="encryptForm">
+			<div class="form-group">
+				<textarea class="form-control" id="messageContent"></textarea>
+			</div>
+			<button id="actionButton" type="submit" class="btn btn-primary">Encrypt</button>
+		</form>
+	</div>
 	
-	
-	<script>
-	</script>
 	<!--<script src="script.js?type=<?php echo($typeOfRequest); ?>&id=<?php echo($messageID); ?>"></script>-->
 	<script src="script.js"></script>
 	
