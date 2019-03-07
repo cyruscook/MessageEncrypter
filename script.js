@@ -78,6 +78,65 @@ class Message
 		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
 	}
+	
+	startDecryption()
+	{
+		// Set the message box to contain the encrypted message (looks cool)
+		this.messageDiv.innerHTML = this.encryptedMessage;
+		
+		// The callback when the user gives us the password
+		function tryPassword(password)
+		{
+			// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
+			// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
+			// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
+			var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
+			
+			// If we know the user hasn't already tried it before
+			if(!thisMessage.knownBadPasswords.includes(hashedPwd))
+			{
+				// Attempt to decrypt the message
+				var bytes = CryptoJS.AES.decrypt(this.encryptedMessage, password);
+				var maybeDecrypted = bytes.toString(CryptoJS.enc.Utf8);
+				
+				// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
+				if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
+				{
+					// If it was retrieve the message
+					this.decryptedMessage = maybeDecrypted.substring(22);
+					onDecryption(this);
+					return;
+				}
+				else
+				{
+					// If they got the password wrong, then we won't bother trying it again
+					
+					// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
+					if(!~thisMessage.knownBadPasswords.indexOf(hashedPwd))
+					{
+						thisMessage.knownBadPasswords.push(hashedPwd);
+					}
+				}
+			}
+			// Ask the user for the password again
+			askForPassword
+			(
+				// The callback when the user gives us the password
+				tryPassword,
+				// This is not the user's first guess
+				true
+			);
+		}
+		
+		// Ask the user for the password
+		askForPassword
+		(
+			// The callback when the user gives us the password
+			tryPassword,
+			// This is the user's first guess
+			false
+		);
+	}
 }
 
 thisMessage = new Message(
@@ -115,65 +174,6 @@ if(thisMessage.typeOfRequest === ETypeOfRequest.decryption)
 	
 	// Send the request
 	request.send();
-}
-
-function startDecryption(theMessage)
-{
-	// Set the message box to contain the encrypted message (looks cool)
-	theMessage.messageDiv.innerHTML = theMessage.encryptedMessage;
-	
-	// The callback when the user gives us the password
-	function tryPassword(password)
-	{
-		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
-		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
-		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
-		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
-		
-		// If we know the user hasn't already tried it before
-		if(!thisMessage.knownBadPasswords.includes(hashedPwd))
-		{
-			// Attempt to decrypt the message
-			var bytes = CryptoJS.AES.decrypt(theMessage.encryptedMessage, password);
-			var maybeDecrypted = bytes.toString(CryptoJS.enc.Utf8);
-			
-			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
-			if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
-			{
-				// If it was retrieve the message
-				theMessage.decryptedMessage = maybeDecrypted.substring(22);
-				onDecryption(theMessage);
-				return;
-			}
-			else
-			{
-				// If they got the password wrong, then we won't bother trying it again
-				
-				// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
-				if(!~thisMessage.knownBadPasswords.indexOf(hashedPwd))
-				{
-					thisMessage.knownBadPasswords.push(hashedPwd);
-				}
-			}
-		}
-		// Ask the user for the password again
-		askForPassword
-		(
-			// The callback when the user gives us the password
-			tryPassword,
-			// This is not the user's first guess
-			true
-		);
-	}
-	
-	// Ask the user for the password
-	askForPassword
-	(
-		// The callback when the user gives us the password
-		tryPassword,
-		// This is the user's first guess
-		false
-	);
 }
 
 function onDecryption(theMessage)
