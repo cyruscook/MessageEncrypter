@@ -69,8 +69,13 @@ function startDecryption(theMessage)
 	// The callback when the user gives us the password
 	function tryPassword(password)
 	{
+		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
+		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
+		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
+		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
+		
 		// If we know the user hasn't already tried it before
-		if(!thisMessage.knownBadPasswords.includes(password))
+		if(!thisMessage.knownBadPasswords.includes(hashedPwd))
 		{
 			// Attempt to decrypt the message
 			var bytes = CryptoJS.AES.decrypt(theMessage.encryptedMessage, password);
@@ -87,10 +92,11 @@ function startDecryption(theMessage)
 			else
 			{
 				// If they got the password wrong, then we won't bother trying it again
+				
 				// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
-				if(!~thisMessage.knownBadPasswords.indexOf(password))
+				if(!~thisMessage.knownBadPasswords.indexOf(hashedPwd))
 				{
-					thisMessage.knownBadPasswords.push(password);
+					thisMessage.knownBadPasswords.push(hashedPwd);
 				}
 			}
 		}
