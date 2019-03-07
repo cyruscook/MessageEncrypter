@@ -6,52 +6,57 @@ var ETypeOfRequest =
 
 class passwordPromptModal
 {
-	function createPrompt()
+	createPrompt()
 	{
-		switch typeOfRequest
+		var modalTitle = "Choose a password:";
+		var locale = 
 		{
-			case ETypeOfRequest.decryption:
-				var modalTitle = "Please enter the password:";
-				var actionText = "Decrypt";
-				break;
-			
-			default:
-				var modalTitle = "Choose a password:";
-				var actionText = "Encrypt";
-				break;
-		};
-		var passwordPromptModal = `
-		<!-- Password Prompt Modal -->
-		<div class="modal fade" id="passwordPromptModal" tabindex="-1" role="dialog" aria-labelledby="passwordPromptModalCenterTitle" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<!-- Modal's Title -->
-						<h5 class="modal-title" id="exampleModalLongTitle">${modalTitle}</h5>
-						<!-- Top right close button -->
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-					</div>
-					<div class="modal-body">
-						<!-- Modal body (password input) -->
-						<input type="password" name="encryptionPassword" id="encryptionPassword"></input>
-					</div>
-					<div class="modal-footer">
-						<!-- Modal Footer (Close/Submit action buttons) -->
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-primary" onclick="onPasswordSubmitted($('passwordPromptModal'));">${actionText}</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		`;
+			CONRIFM: "ENCRYPT",
+			CANCEL: "CANCEL"
+		}
+
+		if(this.typeOfRequest == ETypeOfRequest.decryption)
+		{
+			var modalTitle = "Please enter the password:";
+			if(this.repeated)
+			{
+				var modalTitle = "Incorrect! Please try again:";
+			}
+			locale.CONFIRM = "DECRYPT";
+		}
+		
+		bootbox.addLocale('promptLocale', locale);
+
+		// Create a modal with the given title and button text.
+		bootbox.prompt
+		(
+			{
+				title: modalTitle,
+				locale: "promptLocale",
+				callback: function(result)
+				{
+					if(result)
+					{
+						onPasswordSubmitted(result);
+					}
+				}
+			}
+		)
 	}
-	constructor(callback, typeOfRequest)
+
+	onPasswordSubmitted(password)
+	{
+		this.callback(password);
+	}
+
+	constructor(callback, repeated, typeOfRequest)
 	{
 		this.callback = callback;
+		this.repeated = repeated;
 		this.typeOfRequest = typeOfRequest;
-		
+
+		// Random int between 0 and 9000000000000. We use this to indentify this modal
+		this.modalId = Math.floor(Math.random() * 9000000000000);
 	}
 }
 
@@ -152,7 +157,8 @@ function startDecryption(theMessage)
 			}
 		}
 		// Ask the user for the password again
-		askForPassword(
+		askForPassword
+		(
 			// The callback when the user gives us the password
 			tryPassword,
 			// This is not the user's first guess
@@ -161,7 +167,8 @@ function startDecryption(theMessage)
 	}
 	
 	// Ask the user for the password
-	askForPassword(
+	askForPassword
+	(
 		// The callback when the user gives us the password
 		tryPassword,
 		// This is the user's first guess
@@ -176,10 +183,10 @@ function onDecryption(theMessage)
 	theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
 }
 
-function askForPassword(callback, repeated)
+function askForPassword(callback, repeated, typeOfRequest)
 {
 	// Popup box stuff
-	callback(password);
+	var modal = new passwordPromptModal(callback, repeated, thisMessage.typeOfRequest);
 }
 
 function startEncryption(theMessage)
@@ -192,7 +199,8 @@ function startEncryption(theMessage)
 		theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
 	}
 	
-	askForPassword(
+	askForPassword
+	(
 		// The callback when the user gives us the password
 		passwordCallback,
 		// This is the user's first guess
