@@ -131,8 +131,11 @@ function askForPassword(callback, repeated)
 	callback(password);
 }
 
-function startEncryption(theMessage, password)
+function startEncryption(theMessage)
 {
+	theMessage.decryptedMessage = theMessage.messageDiv.innerHTML;
+	password = askForPassword();
+	
 	// Encrypt the given text with the given password
 	theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
 }
