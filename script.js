@@ -19,7 +19,7 @@ class Message
 		// A reference to the place where we will store the message
 		this.messageDiv = document.getElementById("messageContent");
 		
-		// An array of all of the passwords the user has already tried that have failed
+		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
 	}
 }
@@ -134,10 +134,19 @@ function askForPassword(callback, repeated)
 function startEncryption(theMessage)
 {
 	theMessage.decryptedMessage = theMessage.messageDiv.innerHTML;
-	password = askForPassword();
 	
-	// Encrypt the given text with the given password
-	theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
+	function passwordCallback(password)
+	{
+		// Encrypt the given text with the given password
+		theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
+	}
+	
+	askForPassword(
+		// The callback when the user gives us the password
+		passwordCallback,
+		// This is the user's first guess
+		false
+	);
 }
 
 function onEncryption(theMessage)

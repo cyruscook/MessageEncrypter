@@ -1,0 +1,32 @@
+html{
+	height: 100vh;
+}
+
+body{
+	margin-top: 8px;
+	height: 100%;
+}
+
+#containerBody
+{
+	height: 100%;
+}
+
+
+#encryptForm
+{
+	height: 100%;
+}
+
+#messageContent
+{
+	height:90%; 
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+
+#actionButton
+{
+	width: 100%;
+}
