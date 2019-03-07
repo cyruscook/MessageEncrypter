@@ -4,6 +4,57 @@ var ETypeOfRequest =
 	encryption: 2
 }
 
+class passwordPromptModal
+{
+	function createPrompt()
+	{
+		switch typeOfRequest
+		{
+			case ETypeOfRequest.decryption:
+				var modalTitle = "Please enter the password:";
+				var actionText = "Decrypt";
+				break;
+			
+			default:
+				var modalTitle = "Choose a password:";
+				var actionText = "Encrypt";
+				break;
+		};
+		var passwordPromptModal = `
+		<!-- Password Prompt Modal -->
+		<div class="modal fade" id="passwordPromptModal" tabindex="-1" role="dialog" aria-labelledby="passwordPromptModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<!-- Modal's Title -->
+						<h5 class="modal-title" id="exampleModalLongTitle">${modalTitle}</h5>
+						<!-- Top right close button -->
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<!-- Modal body (password input) -->
+						<input type="password" name="encryptionPassword" id="encryptionPassword"></input>
+					</div>
+					<div class="modal-footer">
+						<!-- Modal Footer (Close/Submit action buttons) -->
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+						<button type="button" class="btn btn-primary" onclick="onPasswordSubmitted($('passwordPromptModal'));">${actionText}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		`;
+	}
+	constructor(callback, typeOfRequest)
+	{
+		this.callback = callback;
+		this.typeOfRequest = typeOfRequest;
+		
+	}
+}
+
 class Message
 {
 	constructor(typeOfRequest, messageID)
