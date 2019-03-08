@@ -4,68 +4,15 @@ var ETypeOfRequest =
 	encryption: 2
 }
 
-class passwordPromptModal
-{
-	createPrompt()
-	{
-		var modalTitle = "Choose a password:";
-		var locale = 
-		{
-			CONRIFM: "ENCRYPT",
-			CANCEL: "CANCEL"
-		}
-
-		if(this.typeOfRequest == ETypeOfRequest.decryption)
-		{
-			var modalTitle = "Please enter the password:";
-			if(this.repeated)
-			{
-				var modalTitle = "Incorrect! Please try again:";
-			}
-			locale.CONFIRM = "DECRYPT";
-		}
-		
-		bootbox.addLocale('promptLocale', locale);
-
-		// Create a modal with the given title and button text.
-		bootbox.prompt
-		(
-			{
-				title: modalTitle,
-				locale: "promptLocale",
-				callback: function(result)
-				{
-					if(result)
-					{
-						onPasswordSubmitted(result);
-					}
-				}
-			}
-		)
-	}
-
-	onPasswordSubmitted(password)
-	{
-		this.callback(password);
-	}
-
-	constructor(callback, repeated, typeOfRequest)
-	{
-		this.callback = callback;
-		this.repeated = repeated;
-		this.typeOfRequest = typeOfRequest;
-
-		// Random int between 0 and 9000000000000. We use this to indentify this modal
-		this.modalId = Math.floor(Math.random() * 9000000000000);
-	}
-}
-
 class Message
 {
-	constructor(typeOfRequest, messageID)
+	constructor(typeOfRequest, messageID, onDecryptionCallback, onEncryptionCallback)
 	{
 		this.typeOfRequest = typeOfRequest;
 		this.messageID = messageID;
+		
+		this.onDecryptionCallback = onDecryptionCallback;
+		this.onEncryptionCallback = onEncryptionCallback;
 	
 		// The message in it's encrypted format
 		this.encryptedMessage = "";
@@ -79,63 +26,49 @@ class Message
 		this.knownBadPasswords = [];
 	}
 	
-	startDecryption()
+	startDecryption(password)
 	{
-		// Set the message box to contain the encrypted message (looks cool)
-		this.messageDiv.innerHTML = this.encryptedMessage;
+		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
+		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
+		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
+		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
 		
-		// The callback when the user gives us the password
-		function tryPassword(password)
+		// If we know the user hasn't already tried it before
+		if(!this.knownBadPasswords.includes(hashedPwd))
 		{
-			// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
-			// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
-			// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
-			var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
+			// Attempt to decrypt the message
+			var maybeDecrypted = CryptoJS.AES.decrypt(this.encryptedMessage, password).toString(CryptoJS.enc.Utf8);
 			
-			// If we know the user hasn't already tried it before
-			if(!thisMessage.knownBadPasswords.includes(hashedPwd))
+			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
+			if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
 			{
-				// Attempt to decrypt the message
-				var bytes = CryptoJS.AES.decrypt(this.encryptedMessage, password);
-				var maybeDecrypted = bytes.toString(CryptoJS.enc.Utf8);
-				
-				// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
-				if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
+				// If it was retrieve the message, store it in the class and return the success of the function
+				this.decryptedMessage = maybeDecrypted.substring(22);
+				this.onDecryptionCallback(this);
+				return true;
+			}
+			else
+			{
+				// If they got the password wrong, then we won't bother trying it again
+				// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
+				if(!~this.knownBadPasswords.indexOf(hashedPwd))
 				{
-					// If it was retrieve the message
-					this.decryptedMessage = maybeDecrypted.substring(22);
-					onDecryption(this);
-					return;
-				}
-				else
-				{
-					// If they got the password wrong, then we won't bother trying it again
-					
-					// Make sure there is only one instance of each password in the array (Thanks https://stackoverflow.com/a/21683507/7641587)
-					if(!~thisMessage.knownBadPasswords.indexOf(hashedPwd))
-					{
-						thisMessage.knownBadPasswords.push(hashedPwd);
-					}
+					this.knownBadPasswords.push(hashedPwd);
 				}
 			}
-			// Ask the user for the password again
-			askForPassword
-			(
-				// The callback when the user gives us the password
-				tryPassword,
-				// This is not the user's first guess
-				true
-			);
 		}
+		// The message was not successfull decrypted
+		return false;
+	}
+
+	startEncryption(password)
+	{
+		this.decryptedMessage = this.messageDiv.innerHTML;
 		
-		// Ask the user for the password
-		askForPassword
-		(
-			// The callback when the user gives us the password
-			tryPassword,
-			// This is the user's first guess
-			false
-		);
+		// Encrypt the given text with the given password
+		this.encryptedMessage = CryptoJS.AES.encrypt(this.decryptedMessage, password).toString();
+
+		this.onEncryptionCallback(this);
 	}
 }
 
@@ -145,7 +78,19 @@ thisMessage = new Message(
 	ETypeOfRequest.encryption,
 	// The id of the message
 	//<?php echo(addslashes($_GET['id'])); ?>
-	50
+	50,
+	// On Decryption Function
+	function(message)
+	{
+		// Set the message box to contain the decryted message
+		message.messageDiv.innerHTML = message.decryptedMessage;
+	},
+	// On Encryption Function
+	function(message)
+	{
+		// Set the message box to contain the encrypted message
+		message.messageDiv.innerHTML = message.encryptedMessage;
+	}
 );
 
 // When the page loads we check the type of request
@@ -165,52 +110,10 @@ if(thisMessage.typeOfRequest === ETypeOfRequest.decryption)
 			// Collect the data that was sent back and retrieve the encrypted message. Pass this to the message class.
 			var data = JSON.parse(request.responseText);
 			thisMessage.encryptedMessage = data.encryptedMessage;
-			thisMessage.messageHash = data.messageHash;
-			
-			// Now that we have the encrypted text we can continue
-			startDecryption(thisMessage);
+			thisMessage.messageDiv.innerHTML = thisMessage.encryptedMessage;
 		}
 	}
 	
 	// Send the request
 	request.send();
-}
-
-function onDecryption(theMessage)
-{
-	// When the user successfully decrypts a message
-	// Set the message box to contain the decrypted message
-	theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
-}
-
-function askForPassword(callback, repeated, typeOfRequest)
-{
-	// Popup box stuff
-	var modal = new passwordPromptModal(callback, repeated, thisMessage.typeOfRequest);
-}
-
-function startEncryption(theMessage)
-{
-	theMessage.decryptedMessage = theMessage.messageDiv.innerHTML;
-	
-	function passwordCallback(password)
-	{
-		// Encrypt the given text with the given password
-		theMessage.encryptedMessage = CryptoJS.AES.encrypt(theMessage.decryptedMessage, password).toString();
-	}
-	
-	askForPassword
-	(
-		// The callback when the user gives us the password
-		passwordCallback,
-		// This is the user's first guess
-		false
-	);
-}
-
-function onEncryption(theMessage)
-{
-	// When the user successfully encrypts a message
-	// Set the message box to contain the encrypted message
-	theMessage.messageDiv.innerHTML = thisMessage.encryptedMessage;
 }
