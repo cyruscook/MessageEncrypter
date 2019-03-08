@@ -72,7 +72,7 @@ class Message
 	}
 }
 
-thisMessage = new Message(
+theMessage = new Message(
 	// The type of request
 	//ETypeOfRequest.<?php echo(addslashes($_GET['decryption'])); ?>,
 	ETypeOfRequest.encryption,
@@ -93,27 +93,119 @@ thisMessage = new Message(
 	}
 );
 
-// When the page loads we check the type of request
-if(thisMessage.typeOfRequest === ETypeOfRequest.decryption)
-{
-	// If it's a decryption then we fetch the encrypted message and the password hash
-	var request = new XMLHttpRequest();
-	
-	// Send a request to the server's api, telling it that we want to decrypt the message at messageID
-	request.open("GET", "https://www.cyruscook.co.uk/encrypt/api/?decryption&id=" + message.messageID);
-	
-	request.onreadystatechange = function()
+console.group("Default Message created:");
+console.dir(theMessage);
+console.groupEnd();
+
+$(document).ready(
+	// Called once the page loads
+	function ()
 	{
-		// If the request has completed and the server has given us the 200 status letting us know that it went ok
-		if(request.readyState == 4 && request.status == 200)
+		// When the page loads we check the type of request
+		if (theMessage.typeOfRequest === ETypeOfRequest.decryption)
 		{
-			// Collect the data that was sent back and retrieve the encrypted message. Pass this to the message class.
-			var data = JSON.parse(request.responseText);
-			thisMessage.encryptedMessage = data.encryptedMessage;
-			thisMessage.messageDiv.innerHTML = thisMessage.encryptedMessage;
+			// If it's a decryption then we fetch the encrypted message and the password hash
+			var request = new XMLHttpRequest();
+
+			// Send a request to the server's api, telling it that we want to decrypt the message at messageID
+			request.open("GET", "https://www.cyruscook.co.uk/encrypt/api/?decryption&id=" + message.messageID);
+
+			request.onreadystatechange = function ()
+			{
+				// If the request has completed and the server has given us the 200 status letting us know that it went ok
+				if (request.readyState == 4 && request.status == 200)
+				{
+					// Collect the data that was sent back and retrieve the encrypted message. Pass this to the message class.
+					var data = JSON.parse(request.responseText);
+					theMessage.encryptedMessage = data.encryptedMessage;
+					theMessage.messageDiv.innerHTML = theMessage.encryptedMessage;
+				}
+			}
+
+			// Send the request
+			request.send();
 		}
+
+		// Set up custom locales
+		var locale = {
+			OK: 'ENCRYPT',
+			CONFIRM: 'ENCRYPT',
+			CANCEL: 'CANCEL'
+		};
+
+		bootbox.addLocale('Encrypt', locale);
+
+		var locale = {
+			OK: 'DECRYPT',
+			CONFIRM: 'DECRYPT',
+			CANCEL: 'CANCEL'
+		}
+
+		bootbox.addLocale('Decrypt', locale);
+
+		// Prevent form from being submitted and override it's action
+		$('#encryptForm').submit(function (event)
+		{
+			event.preventDefault();
+			actionButton();
+			return false;
+		});
 	}
-	
-	// Send the request
-	request.send();
+);
+
+// Function fired by the form being submitted
+function actionButton()
+{
+	// Open a popup box to ask for the password to encrypt with
+	askForPassword(
+		// Whether we ask the user for a password to encrypt or decrypt
+		theMessage.typeOfRequest,
+		// The callback on success
+		function (password)
+		{
+			// Encrypt the message with the password
+			theMessage.encrypt(password);
+			theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
+		},
+		// Whether we reject an empty password
+		false
+	);
+	return false;
+}
+
+// Function fired by the form being submitted
+function askForPassword(typeOfRequest, successCallback, rejectEmpty)
+{
+	var thisLocale = "Encrypt";
+	if (typeOfRequest === ETypeOfRequest.decryption)
+	{
+		var thisLocale = "Decrypt";
+	}
+
+	bootbox.prompt({
+		// The title of the prompt
+		title: "Please enter a password",
+		// The input type of the input
+		inputType: 'password',
+		// Allow the user to dismiss by clicking on the background
+		backdrop: true,
+		// The custom localisation, this changes the text of the buttons
+		locale: thisLocale,
+		callback: function (password)
+		{
+			console.assert(
+				password != "",
+				{
+					"message": "No password supplied",
+					"password": password
+				}
+			);
+			// Function fired once the user submits the password popup
+			if (password != "" || !rejectEmpty)
+			{
+				// If the user entered a password
+				successCallback(password);
+			}
+		}
+	});
 }
