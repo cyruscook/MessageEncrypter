@@ -63,7 +63,7 @@ class Message
 
 	encrypt(password)
 	{
-		this.decryptedMessage = this.messageDiv.innerHTML;
+		this.decryptedMessage = this.messageDiv.value;
 		
 		// Encrypt the given text with the given password
 		this.encryptedMessage = CryptoJS.AES.encrypt(this.decryptedMessage, password).toString();
@@ -83,13 +83,13 @@ theMessage = new Message(
 	function(message)
 	{
 		// Set the message box to contain the decryted message
-		message.messageDiv.innerHTML = message.decryptedMessage;
+		message.messageDiv.value = message.decryptedMessage;
 	},
 	// On Encryption Function
 	function(message)
 	{
 		// Set the message box to contain the encrypted message
-		message.messageDiv.innerHTML = message.encryptedMessage;
+		message.messageDiv.value = message.encryptedMessage;
 	}
 );
 
@@ -118,7 +118,7 @@ $(document).ready(
 					// Collect the data that was sent back and retrieve the encrypted message. Pass this to the message class.
 					var data = JSON.parse(request.responseText);
 					theMessage.encryptedMessage = data.encryptedMessage;
-					theMessage.messageDiv.innerHTML = theMessage.encryptedMessage;
+					theMessage.messageDiv.value = theMessage.encryptedMessage;
 				}
 			}
 
@@ -163,9 +163,13 @@ function actionButton()
 		// The callback on success
 		function (password)
 		{
+			console.log("Callback recieved");
 			// Encrypt the message with the password
 			theMessage.encrypt(password);
-			theMessage.messageDiv.innerHTML = theMessage.decryptedMessage;
+			theMessage.messageDiv.value = theMessage.encryptedMessage;
+			console.group("Default Message created:");
+			console.dir(theMessage);
+			console.groupEnd();
 		},
 		// Whether we reject an empty password
 		false
@@ -181,6 +185,22 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty)
 	{
 		var thisLocale = "Decrypt";
 	}
+	// Set up custom locales
+	var locale = {
+		OK: 'ENCRYPT',
+		CONFIRM: 'ENCRYPT',
+		CANCEL: 'CANCEL'
+	};
+
+	bootbox.addLocale('Encrypt', locale);
+
+	var locale = {
+		OK: 'DECRYPT',
+		CONFIRM: 'DECRYPT',
+		CANCEL: 'CANCEL'
+	}
+
+	bootbox.addLocale('Decrypt', locale);
 
 	bootbox.prompt({
 		// The title of the prompt
@@ -190,18 +210,12 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty)
 		// Allow the user to dismiss by clicking on the background
 		backdrop: true,
 		// The custom localisation, this changes the text of the buttons
-		locale: thisLocale,
+		locale: "Encrypt",
 		callback: function (password)
 		{
-			console.assert(
-				password != "",
-				{
-					"message": "No password supplied",
-					"password": password
-				}
-			);
+			console.log("Password supplied: " + password);
 			// Function fired once the user submits the password popup
-			if (password != "" || !rejectEmpty)
+			if (password && (password != "" || !rejectEmpty))
 			{
 				// If the user entered a password
 				successCallback(password);
