@@ -26,7 +26,7 @@ class Message
 		this.knownBadPasswords = [];
 	}
 	
-	startDecryption(password)
+	decrypt(password)
 	{
 		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
 		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
@@ -61,7 +61,7 @@ class Message
 		return false;
 	}
 
-	startEncryption(password)
+	encrypt(password)
 	{
 		this.decryptedMessage = this.messageDiv.innerHTML;
 		
