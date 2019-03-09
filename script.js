@@ -36,6 +36,9 @@ class Message
 		
 		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
+
+		this.isEncrypting = false;
+		this.isDecrypting = false;
 	}
 
 	changeReqestType(typeOfRequest)
@@ -54,10 +57,16 @@ class Message
 	
 	decrypt(password)
 	{
+		if (this.isDecrypting)
+		{
+			return false;
+		}
+		this.isDecrypting = true;
+
 		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
 		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
 		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
-		console.group("Attemping Decrypt:");
+		console.groupCollapsed("Attemping Decrypt:");
 		var salt = CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password);
 		console.log("Salt: " + salt);
 		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", salt);
@@ -69,12 +78,14 @@ class Message
 			// Attempt to decrypt the message
 			var maybeDecrypted = CryptoJS.AES.decrypt(this.encryptedMessage, password).toString(CryptoJS.enc.Utf8);
 
+			var subString = maybeDecrypted.substring(0, 22);
+
 			console.log("Maybe Decrypted: " + maybeDecrypted);
-			console.log("First part: " + maybeDecrypted.substring(0, 22) + " (Should have begin message)");
+			console.assert(subString == "-- BEGIN MESSAGE --- ", { x: subString, y: "-- BEGIN MESSAGE --- ", message: "x != y"});
 			console.groupEnd();
 			
 			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
-			if(maybeDecrypted.substring(0,22) == "--- BEGIN MESSAGE --- ")
+			if (subString == "--- BEGIN MESSAGE --- ")
 			{
 				// If it was retrieve the message and store it in the class
 				this.decryptedMessage = maybeDecrypted.substring(22);
@@ -84,6 +95,7 @@ class Message
 
 				// Let the user know it was successfull
 				this.onDecryptionCallback(this);
+				this.isDecrypting = false;
 				return true;
 			}
 			else
@@ -97,11 +109,18 @@ class Message
 			}
 		}
 		// The message was not successfully decrypted
+		this.isDecrypting = false;
 		return false;
 	}
 
 	encrypt(password)
 	{
+		if (this.isEncrypting)
+		{
+			return;
+		}
+		this.isEncrypting = true;
+
 		this.decryptedMessage = this.messageDiv.value;
 		
 		// Encrypt the given text with the given password
@@ -112,6 +131,7 @@ class Message
 
 		// Let the user know it was successful
 		this.onEncryptionCallback(this);
+		this.isEncrypting = false;
 		return true;
 	}
 }
@@ -137,7 +157,7 @@ theMessage = new Message(
 	}
 );
 
-console.group("Default Message created:");
+console.groupCollapsed("Default Message created:");
 console.dir(theMessage);
 console.groupEnd();
 
@@ -274,7 +294,7 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty, secondGuess
 		thisTitle = "Incorrect, please try again:";
 	}
 
-	console.group("Asking the user for password using following params:");
+	console.groupCollapsed("Asking the user for password using following params:");
 	console.dir(
 		{
 			"Type Of Request": typeOfRequest,
