@@ -214,6 +214,47 @@ $(document).ready(
 			actionButton();
 			return false;
 		});
+
+		// Disable the button when there is text in the box, enable it when there isn't (Slightly modified from https://stackoverflow.com/a/41589301/7641587, thank you!)
+		function replaceWithWrapper(obj, property, callback)
+		{
+			Object.defineProperty(obj, property, new function ()
+			{
+				var _value = obj[property];
+				return {
+					set: function (value)
+					{
+						_value = value;
+						callback(obj, property, value)
+					},
+					get: function ()
+					{
+						return _value;
+					}
+				}
+			});
+		}
+
+		replaceWithWrapper($("#messageContent")[0], "innerHTML", function (obj, property, value)
+		{
+			console.dir({ obj, property, value });
+			obj.value = value;
+			checkTextboxStatus();
+		});
+
+		function checkTextboxStatus()
+		{
+			if ($("#messageContent")[0].value != '')
+			{
+				$("#actionButton").prop("disabled", false);
+			}
+			else
+			{
+				$("#actionButton").prop("disabled", true);
+			}
+		}
+
+		$("#messageContent").bind('input', checkTextboxStatus);
 	}
 );
 
