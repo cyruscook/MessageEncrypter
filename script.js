@@ -191,21 +191,21 @@ $(document).ready(
 		}
 
 		// Set up custom locales
-		var locale = {
+		var eLocale = {
 			OK: 'ENCRYPT',
 			CONFIRM: 'ENCRYPT',
 			CANCEL: 'CANCEL'
 		};
 
-		bootbox.addLocale('Encrypt', locale);
+		bootbox.addLocale('Encrypt', eLocale);
 
-		var locale = {
+		var dLocale = {
 			OK: 'DECRYPT',
 			CONFIRM: 'DECRYPT',
 			CANCEL: 'CANCEL'
 		}
 
-		bootbox.addLocale('Decrypt', locale);
+		bootbox.addLocale('Decrypt', dLocale);
 
 		// Prevent form from being submitted and override it's action
 		$('#encryptForm').submit(function (event)
@@ -323,16 +323,21 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty, secondGuess
 {
 	// Whether we are asking the user for a password to encrypt or decrypt
 	var thisLocale = "Encrypt";
+	var thisTitle = "Please enter a password";
+	var thisMessage = "A password is required to encrypt this message";
 	if (typeOfRequest === ETypeOfRequest.decryption)
 	{
 		thisLocale = "Decrypt";
+		thisTitle = "Please enter the password";
+		thisMessage = "To decrypt this message you need the password that it was encrypted with";
 	}
+	console.dir({ thisLocale, typeOfRequest });
 
 	// If this is the second guess we tell the user
-	var thisTitle = "Please enter a password";
 	if (secondGuess)
 	{
 		thisTitle = "Incorrect, please try again:";
+		thisMessage = "The password that you entered was incorrect";
 	}
 
 	console.groupCollapsed("Asking the user for password using following params:");
@@ -349,12 +354,13 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty, secondGuess
 	bootbox.prompt({
 		// The title of the prompt
 		title: thisTitle,
+		message: thisMessage,
 		// The input type of the input
 		inputType: 'password',
 		// Allow the user to dismiss by clicking on the background
 		backdrop: true,
 		// The custom localisation, this changes the text of the buttons
-		locale: "Encrypt",
+		locale: thisLocale,
 		callback: function (password)
 		{
 			// Function fired once the user submits the password popup
