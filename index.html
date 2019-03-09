@@ -20,11 +20,20 @@ $messageID = addslashes($_GET['id']);
 </head>
 <body>
 	<div class="container" id="containerBody">
-		<form id="encryptForm">
-			<textarea class="form-control" id="messageContent"></textarea>
-			<br>
-			<button id="actionButton" type="submit" class="btn btn-primary" disabled>Encrypt</button>
-		</form>
+		<div class="vertical-input-group outer">
+			<div class="input-group inner_fixed" id="listGroupContainer">
+				<div class="btn-group" role="group" id="listBtnGroup">
+					<button class="btn btn-secondary requestTypeBtn" id="encryptListButton">ENCRYPT</button>
+					<button class="btn btn-secondary requestTypeBtn" id="decryptListButton">DECRYPT</button>
+				</div>
+			</div>
+			<div class="input-group inner_remaining">
+				<textarea class="form-control" id="messageContent"></textarea>
+			</div>
+			<div class="input-group inner_fixed">
+				<button id="actionButton" type="submit" class="btn btn-primary form-control" disabled></button>
+			</div>
+		</div>
 	</div>
 
 	<!-- Jquery -->

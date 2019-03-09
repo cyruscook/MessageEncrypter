@@ -1,10 +1,16 @@
-html{
+html {
 	height: 100vh;
+	font-size: 2vh;
+}
+
+.btn {
+	font-size: 2vh;
 }
 
 body{
 	margin-top: 8px;
 	height: 100%;
+	overflow: hidden;
 }
 
 #containerBody
@@ -18,15 +24,94 @@ body{
 	height: 100%;
 }
 
-#messageContent
-{
-	height:90%; 
+#messageContent {
+	height: 100%;
+	width: 100%;
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
+
+	border-top: 0;
+	border-bottom: 0;
 }
 
 #actionButton
 {
 	width: 100%;
+}
+
+.vertical-input-group
+{
+	height: 100%;
+}
+
+#decryptListButton, #listBtnGroup, #encryptListButton
+{
+	width: 100%;
+}
+
+#listGroupContainer
+{
+	height: 4vh;
+	overflow: hidden;
+}
+
+.requestTypeBtn
+{
+	color: #3276b1;
+	background-color: #fff;
+
+	font-size: 1.5vh;
+}
+
+.requestTypeBtn .active
+{
+	color: #fff;
+	background-color: #0069d9;
+}
+
+
+
+
+
+/* VERTICAL BOOTSTRAP INPUT GROUPS --- Thanks https://stackoverflow.com/q/39623405/7641587 */
+.vertical-input-group .input-group:first-child {
+	padding-bottom: 0;
+}
+
+.vertical-input-group .input-group:first-child * {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.vertical-input-group .input-group:last-child {
+	padding-top: 0;
+}
+
+.vertical-input-group .input-group:last-child * {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+.vertical-input-group .input-group:not(:last-child):not(:first-child) {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.vertical-input-group .input-group:not(:last-child):not(:first-child) * {
+	border-radius: 0;
+}
+
+
+
+/* Fill all remaining space with flexbox, thanks https://www.whitebyte.info/programming/css/how-to-make-a-div-take-the-remaining-height */
+
+.outer {
+}
+
+.inner_fixed {
+}
+
+.inner_remaining {
+	height: calc(100% - 150px);
 }

@@ -24,15 +24,7 @@ class Message
 		// A reference to the button used to action this message
 		this.actionButton = document.getElementById("actionButton");
 
-		// Set the action button's value based on the type of request
-		if (typeOfRequest === ETypeOfRequest.decryption)
-		{
-			this.actionButton.innerHTML = "Decrypt";
-		}
-		else
-		{
-			this.actionButton.innerHTML = "Encrypt";
-		}
+		this.changeReqestType(typeOfRequest);
 		
 		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
@@ -46,12 +38,18 @@ class Message
 		if (typeOfRequest === ETypeOfRequest.decryption)
 		{
 			this.typeOfRequest = ETypeOfRequest.decryption;
-			this.actionButton.innerHTML = "Decrypt";
+
+			$("#actionButton").html("Decrypt");
+			$("#decryptListButton").addClass("active");
+			$("#encryptListButton").removeClass("active");
 		}
 		else
 		{
 			this.typeOfRequest = ETypeOfRequest.encryption;
-			this.actionButton.innerHTML = "Encrypt";
+
+			$("#actionButton").html("Encrypt");
+			$("#encryptListButton").addClass("active");
+			$("#decryptListButton").removeClass("active");
 		}
 	}
 	
@@ -168,7 +166,10 @@ $(document).ready(
 		// When the page loads we check the type of request
 		if (theMessage.typeOfRequest === ETypeOfRequest.decryption)
 		{
-			// If it's a decryption then we fetch the encrypted message and the password hash
+			// Request is a decryption
+			theMessage.changeReqestType(ETypeOfRequest.decryption);
+
+			/*// If it's a decryption then we fetch the encrypted message and the password hash
 			var request = new XMLHttpRequest();
 
 			// Send a request to the server's api, telling it that we want to decrypt the message at messageID
@@ -187,7 +188,12 @@ $(document).ready(
 			}
 
 			// Send the request
-			request.send();
+			request.send();*/
+		}
+		else
+		{
+			// Its an encryption
+			theMessage.changeReqestType(ETypeOfRequest.encryption);
 		}
 
 		// Set up custom locales
@@ -255,6 +261,23 @@ $(document).ready(
 		}
 
 		$("#messageContent").bind('input', checkTextboxStatus);
+
+
+
+
+		// On type of request button clicks, change the type of request
+
+		$("#encryptListButton").click(function ()
+		{
+			// Switch to encryption
+			theMessage.changeReqestType(ETypeOfRequest.encryption);
+		});
+
+		$("#decryptListButton").click(function ()
+		{
+			// Switch to decryption
+			theMessage.changeReqestType(ETypeOfRequest.decryption);
+		});
 	}
 );
 
