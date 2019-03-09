@@ -1,7 +1,7 @@
 var ETypeOfRequest = 
 {
-	decryption: 1,
-	encryption: 2
+	decryption: "decryption",
+	encryption: "encryption"
 }
 
 class Message
@@ -23,6 +23,16 @@ class Message
 		this.messageDiv = document.getElementById("messageContent");
 		// A reference to the button used to action this message
 		this.actionButton = document.getElementById("actionButton");
+
+		// Set the action button's value based on the type of request
+		if (typeOfRequest === ETypeOfRequest.decryption)
+		{
+			this.actionButton.innerHTML = "Decrypt";
+		}
+		else
+		{
+			this.actionButton.innerHTML = "Encrypt";
+		}
 		
 		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
@@ -32,11 +42,12 @@ class Message
 	{
 		if (typeOfRequest === ETypeOfRequest.decryption)
 		{
-			this.typeOfRequest == typeOfRequest;
+			this.typeOfRequest = ETypeOfRequest.decryption;
 			this.actionButton.innerHTML = "Decrypt";
-		} else
+		}
+		else
 		{
-			this.typeOfRequest == ETypeOfRequest.encryption;
+			this.typeOfRequest = ETypeOfRequest.encryption;
 			this.actionButton.innerHTML = "Encrypt";
 		}
 	}
@@ -46,21 +57,33 @@ class Message
 		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
 		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
 		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
-		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password));
+		console.group("Attemping Decrypt:");
+		var salt = CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password);
+		console.log("Salt: " + salt);
+		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", salt);
+		console.log("Hashed: " + hashedPwd);
 		
 		// If we know the user hasn't already tried it before
 		if(!this.knownBadPasswords.includes(hashedPwd))
 		{
 			// Attempt to decrypt the message
 			var maybeDecrypted = CryptoJS.AES.decrypt(this.encryptedMessage, password).toString(CryptoJS.enc.Utf8);
+
+			console.log("Maybe Decrypted: " + maybeDecrypted);
+			console.log("First part: " + maybeDecrypted.substring(0, 22) + " (Should have begin message)");
+			console.groupEnd();
 			
 			// Check whether the message was succesfully decrypted (will always start with --- BEGIN MESSAGE --- )
-			if(maybeDecrypted.substring(0,21) == "--- BEGIN MESSAGE --- ")
+			if(maybeDecrypted.substring(0,22) == "--- BEGIN MESSAGE --- ")
 			{
-				// If it was retrieve the message, store it in the class and return the success of the function
+				// If it was retrieve the message and store it in the class
 				this.decryptedMessage = maybeDecrypted.substring(22);
+				
+				// The type of request has changed - it's now an encryption! let's switch it:
+				this.changeReqestType(ETypeOfRequest.encryption);
+
+				// Let the user know it was successfull
 				this.onDecryptionCallback(this);
-				this.typeOfRequest = ETypeOfRequest.decryption;
 				return true;
 			}
 			else
@@ -73,7 +96,7 @@ class Message
 				}
 			}
 		}
-		// The message was not successfull decrypted
+		// The message was not successfully decrypted
 		return false;
 	}
 
@@ -82,9 +105,14 @@ class Message
 		this.decryptedMessage = this.messageDiv.value;
 		
 		// Encrypt the given text with the given password
-		this.encryptedMessage = CryptoJS.AES.encrypt(this.decryptedMessage, password).toString();
+		this.encryptedMessage = CryptoJS.AES.encrypt("--- BEGIN MESSAGE --- " + this.decryptedMessage, password).toString();
 
+		// The type of request has changed - it's now a decryption! let's switch it:
+		this.changeReqestType(ETypeOfRequest.decryption);
+
+		// Let the user know it was successful
 		this.onEncryptionCallback(this);
+		return true;
 	}
 }
 
@@ -172,55 +200,94 @@ $(document).ready(
 // Function fired by the form being submitted
 function actionButton()
 {
-	// Open a popup box to ask for the password to encrypt with
-	askForPassword(
-		// Whether we ask the user for a password to encrypt or decrypt
-		theMessage.typeOfRequest,
-		// The callback on success
-		function (password)
+	function onRecievePassword(password)
+	{
+		// Called when we recieve the password
+		console.log("Password submit callback has been recieved, attemping to perform action " + theMessage.typeOfRequest);
+		if (theMessage.typeOfRequest === ETypeOfRequest.decryption)
 		{
-			console.log("Callback recieved");
-			// Encrypt the message with the password
-			theMessage.encrypt(password);
-			theMessage.messageDiv.value = theMessage.encryptedMessage;
-			console.group("Default Message created:");
-			console.dir(theMessage);
-			console.groupEnd();
-		},
-		// Whether we reject an empty password
-		false
-	);
+			// Decrypt the message with the given password
+			if (theMessage.decrypt(password))
+			{
+				// If it was successful show the user the decrypted text
+				theMessage.messageDiv.value = theMessage.decryptedMessage;
+				return;
+			}
+			else
+			{
+				// Otherwise there was a failure - let's ask them for the password again and repeat the process
+				_askForPassword(true);
+				return;
+			}
+		}
+		else
+		{
+			// Encrypt the message with the given password
+			if (theMessage.encrypt(password))
+			{
+				// If it was successful show the user the encrypted text
+				theMessage.messageDiv.value = theMessage.encryptedMessage;
+				return;
+			}
+			else
+			{
+				// Otherwise there was a failure
+				return;
+			}
+		}
+	}
+
+	// This will also get called from within the onRecievePassword function, let's not write the code twice
+	function _askForPassword(secondGuess)
+	{
+		// Open a popup box to ask for the password to encrypt with
+		askForPassword(
+			// Whether we ask the user for a password to encrypt or decrypt
+			theMessage.typeOfRequest,
+			// The callback triggered when the user enters a password
+			onRecievePassword,
+			// Whether we reject an empty password
+			false,
+			// Whether this is the first try
+			secondGuess
+		);
+	}
+
+	_askForPassword(false);
 	return false;
 }
 
 // Function fired by the form being submitted
-function askForPassword(typeOfRequest, successCallback, rejectEmpty)
+function askForPassword(typeOfRequest, successCallback, rejectEmpty, secondGuess)
 {
+	// Whether we are asking the user for a password to encrypt or decrypt
 	var thisLocale = "Encrypt";
 	if (typeOfRequest === ETypeOfRequest.decryption)
 	{
-		var thisLocale = "Decrypt";
-	}
-	// Set up custom locales
-	var locale = {
-		OK: 'ENCRYPT',
-		CONFIRM: 'ENCRYPT',
-		CANCEL: 'CANCEL'
-	};
-
-	bootbox.addLocale('Encrypt', locale);
-
-	var locale = {
-		OK: 'DECRYPT',
-		CONFIRM: 'DECRYPT',
-		CANCEL: 'CANCEL'
+		thisLocale = "Decrypt";
 	}
 
-	bootbox.addLocale('Decrypt', locale);
+	// If this is the second guess we tell the user
+	var thisTitle = "Please enter a password";
+	if (secondGuess)
+	{
+		thisTitle = "Incorrect, please try again:";
+	}
+
+	console.group("Asking the user for password using following params:");
+	console.dir(
+		{
+			"Type Of Request": typeOfRequest,
+			"Success Callback": successCallback,
+			"Reject Empty": rejectEmpty,
+			"Second Guess": secondGuess
+		}
+	);
+	console.groupEnd();
 
 	bootbox.prompt({
 		// The title of the prompt
-		title: "Please enter a password",
+		title: thisTitle,
 		// The input type of the input
 		inputType: 'password',
 		// Allow the user to dismiss by clicking on the background
@@ -229,7 +296,6 @@ function askForPassword(typeOfRequest, successCallback, rejectEmpty)
 		locale: "Encrypt",
 		callback: function (password)
 		{
-			console.log("Password supplied: " + password);
 			// Function fired once the user submits the password popup
 			if (password && (password != "" || !rejectEmpty))
 			{
