@@ -21,9 +21,24 @@ class Message
 		
 		// A reference to the place where we will store the message
 		this.messageDiv = document.getElementById("messageContent");
+		// A reference to the button used to action this message
+		this.actionButton = document.getElementById("actionButton");
 		
 		// An array of all of the (hashed) passwords the user has already tried that have failed
 		this.knownBadPasswords = [];
+	}
+
+	changeReqestType(typeOfRequest)
+	{
+		if (typeOfRequest === ETypeOfRequest.decryption)
+		{
+			this.typeOfRequest == typeOfRequest;
+			this.actionButton.innerHTML = "Decrypt";
+		} else
+		{
+			this.typeOfRequest == ETypeOfRequest.encryption;
+			this.actionButton.innerHTML = "Encrypt";
+		}
 	}
 	
 	decrypt(password)
@@ -31,7 +46,7 @@ class Message
 		// Hash the password. The idea of these salts and embedded hashes is not to prevent bruteforce attacks which would largely still be possible, but to prevent script kiddies from plugging these into a website
 		// These passwords are only stored client side anyway, so the chance of someone getting them and bruteforcing them are minimal
 		// And anyway, they're the incorrect password, this is just in case someone tries a password that they use on other things
-		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password))
+		var hashedPwd = CryptoJS.HmacSHA256(password + "w6qI071*%q%XeoYVdIPKbBdOl9#N2Z3Mz&", CryptoJS.SHA3("&L$895NAl0apYNe0!l47ye61r1dWEhsO#*" + password));
 		
 		// If we know the user hasn't already tried it before
 		if(!this.knownBadPasswords.includes(hashedPwd))
@@ -45,6 +60,7 @@ class Message
 				// If it was retrieve the message, store it in the class and return the success of the function
 				this.decryptedMessage = maybeDecrypted.substring(22);
 				this.onDecryptionCallback(this);
+				this.typeOfRequest = ETypeOfRequest.decryption;
 				return true;
 			}
 			else
