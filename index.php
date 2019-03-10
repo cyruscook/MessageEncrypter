@@ -1,10 +1,24 @@
 <?php
+
+// Set the default type of request
 $typeOfRequest = "encryption";
 if(isset($_GET['decrypt']) || isset($_GET['decryption']))
 {
 	$typeOfRequest = "decryption";
 }
 
+// If we have been given some text in the url to automatically encrypt / decrypt then we'll get it here
+$keys = array_keys($_GET);
+$defaultText = "";
+
+// If we actually have been provided some text
+if(count($keys) > 1)
+{
+	// In case the text gets split up by a "/" inside of it, then let's join it back together
+	//$defaultText = htmlentities(urldecode(implode("", array_slice($keys, 1))));
+}
+
+// If the user has gone to a subfolder like /decrypt/ then we need to make any external dependencies come back out
 $dirCount = str_repeat("../", count($_GET));
 ?>
 
@@ -29,7 +43,7 @@ $dirCount = str_repeat("../", count($_GET));
 				</div>
 			</div>
 			<div class="input-group inner_remaining">
-				<textarea class="form-control" id="messageContent"></textarea>
+				<textarea class="form-control" id="messageContent" placeholder="Enter your message here"><?php echo($defaultText); ?></textarea>
 			</div>
 			<div class="input-group inner_fixed">
 				<button id="actionButton" type="submit" class="btn btn-primary form-control" disabled></button>
@@ -59,7 +73,7 @@ $dirCount = str_repeat("../", count($_GET));
 
 
 	<!-- Our Javascript -->
-	<script src="<?php echo($dirCount); ?>wscript.js"></script>
+	<script src="<?php echo($dirCount); ?>script.js"></script>
 	<script>
 	createDefaultMessage(ETypeOfRequest.<?php echo($typeOfRequest); ?>);
 	</script>
