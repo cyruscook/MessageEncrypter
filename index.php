@@ -4,6 +4,8 @@ if(isset($_GET['decrypt']) || isset($_GET['decryption']))
 {
 	$typeOfRequest = "decryption";
 }
+
+$dirCount = str_repeat("../", count($_GET));
 ?>
 
 <!DOCTYPE html>
@@ -12,10 +14,10 @@ if(isset($_GET['decrypt']) || isset($_GET['decryption']))
 	<title>Encrypted Message</title>
 
 	<!-- Bootstrap -->
-	<link rel="stylesheet" href="lib/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T">
+	<link rel="stylesheet" href="<?php echo($dirCount); ?>lib/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T">
 
 	<!-- Our stylesheet -->
-	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="<?php echo($dirCount); ?>style.css">
 </head>
 <body>
 	<div class="container" id="containerBody">
@@ -36,28 +38,28 @@ if(isset($_GET['decrypt']) || isset($_GET['decryption']))
 	</div>
 
 	<!-- Jquery -->
-	<script src="lib/jquery.min.js"></script>
+	<script src="<?php echo($dirCount); ?>lib/jquery.min.js"></script>
 
 	<!-- Popper -->
-	<script src="lib/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="<?php echo($dirCount); ?>lib/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 
 	<!-- Bootstrap -->
-	<script src="lib/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="<?php echo($dirCount); ?>lib/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 	<!-- Bootbox -->
-	<script src="lib/bootbox.all.min.js"></script>
+	<script src="<?php echo($dirCount); ?>lib/bootbox.all.min.js"></script>
 
 	<!-- CryptoJS (https://code.google.com/archive/p/crypto-js/). This is the library with which encryptions will be made -->
 	<!-- AES -->
-	<script src="lib/aes.js"></script>
+	<script src="<?php echo($dirCount); ?>lib/aes.js"></script>
 	<!-- SHA-3 -->
-	<script src="lib/sha3.js"></script>
+	<script src="<?php echo($dirCount); ?>lib/sha3.js"></script>
 	<!-- HMAC SHA-3 -->
-	<script src="lib/hmac-sha256.js"></script>
+	<script src="<?php echo($dirCount); ?>lib/hmac-sha256.js"></script>
 
 
 	<!-- Our Javascript -->
-	<script src="script.js"></script>
+	<script src="<?php echo($dirCount); ?>wscript.js"></script>
 	<script>
 	createDefaultMessage(ETypeOfRequest.<?php echo($typeOfRequest); ?>);
 	</script>
