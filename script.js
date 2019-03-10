@@ -1,4 +1,4 @@
-var ETypeOfRequest = 
+const ETypeOfRequest = 
 {
 	decryption: "decryption",
 	encryption: "encryption"
@@ -134,30 +134,31 @@ class Message
 	}
 }
 
-theMessage = new Message(
-	// The type of request
-	//ETypeOfRequest.<?php echo(addslashes($_GET['decryption'])); ?>,
-	ETypeOfRequest.encryption,
-	// The id of the message
-	//<?php echo(addslashes($_GET['id'])); ?>
-	50,
-	// On Decryption Function
-	function(message)
-	{
-		// Set the message box to contain the decryted message
-		message.messageDiv.value = message.decryptedMessage;
-	},
-	// On Encryption Function
-	function(message)
-	{
-		// Set the message box to contain the encrypted message
-		message.messageDiv.value = message.encryptedMessage;
-	}
-);
+var theMessage;
+function createDefaultMessage(type)
+{
+	theMessage = new Message(
+		// The type of request
+		type,
+		50,
+		// On Decryption Function
+		function (message)
+		{
+			// Set the message box to contain the decryted message
+			message.messageDiv.value = message.decryptedMessage;
+		},
+		// On Encryption Function
+		function (message)
+		{
+			// Set the message box to contain the encrypted message
+			message.messageDiv.value = message.encryptedMessage;
+		}
+	);
 
-console.groupCollapsed("Default Message created:");
-console.dir(theMessage);
-console.groupEnd();
+	console.groupCollapsed("Default Message created:");
+	console.dir(theMessage);
+	console.groupEnd();
+}
 
 $(document).ready(
 	// Called once the page loads

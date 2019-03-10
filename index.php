@@ -1,20 +1,19 @@
 <?php
 $typeOfRequest = "encryption";
-if(isset($_GET['decryption']))
+if(isset($_GET['decrypt']) || isset($_GET['decryption']))
 {
 	$typeOfRequest = "decryption";
 }
-
-$messageID = addslashes($_GET['id']);
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
 	<title>Encrypted Message</title>
-	
+
 	<!-- Bootstrap -->
 	<link rel="stylesheet" href="lib/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T">
-	
+
 	<!-- Our stylesheet -->
 	<link rel="stylesheet" href="style.css">
 </head>
@@ -49,16 +48,18 @@ $messageID = addslashes($_GET['id']);
 	<script src="lib/bootbox.all.min.js"></script>
 
 	<!-- CryptoJS (https://code.google.com/archive/p/crypto-js/). This is the library with which encryptions will be made -->
-		<!-- AES -->
-		<script src="lib/aes.js"></script>
-		<!-- SHA-3 -->
-		<script src="lib/sha3.js"></script>
-		<!-- HMAC SHA-3 -->
-		<script src="lib/hmac-sha256.js"></script>
+	<!-- AES -->
+	<script src="lib/aes.js"></script>
+	<!-- SHA-3 -->
+	<script src="lib/sha3.js"></script>
+	<!-- HMAC SHA-3 -->
+	<script src="lib/hmac-sha256.js"></script>
 
 
 	<!-- Our Javascript -->
-	<!--<script src="script.js?type=<?php echo($typeOfRequest); ?>&id=<?php echo($messageID); ?>"></script>-->
 	<script src="script.js"></script>
+	<script>
+	createDefaultMessage(ETypeOfRequest.<?php echo($typeOfRequest); ?>);
+	</script>
 </body>
 </html>
