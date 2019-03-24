@@ -48,7 +48,7 @@ $dirCount = str_repeat("../", count($_GET));
 				<textarea class="form-control" id="messageContent" placeholder="Enter your message here"><?php echo($defaultText); ?></textarea>
 			</div>
 			<div class="input-group inner_fixed">
-				<button id="actionButton" type="submit" class="btn btn-primary form-control" disabled></button>
+				<button id="actionButton" type="submit" class="btn btn-primary form-control" onclick="actionButton(); return false;" disabled></button>
 			</div>
 		</div>
 	</div>
